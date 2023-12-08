@@ -1,4 +1,4 @@
-package mysql
+package xorm
 
 import (
 	dbSql "database/sql"
