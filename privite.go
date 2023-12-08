@@ -100,7 +100,6 @@ func (cli *Cli) upsert(records []SqlxTabler) (dbSql.Result, error) {
 	return result, nil
 }
 
-// 转化成Map切片,嵌套的复杂结构会序列化
 func (cli *Cli) toMapSlice(records []SqlxTabler) ([]map[string]any, []string, error) {
 
 	mmp := make([]map[string]any, 0, len(records))

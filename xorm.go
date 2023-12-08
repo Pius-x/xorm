@@ -6,16 +6,11 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/Pius-x/xorm/hook"
 	"github.com/Pius-x/xorm/utils"
 	"github.com/bytedance/sonic"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 )
-
-func WithPrintSql() {
-	hook.PrintSql = true
-}
 
 const Tag = "db"
 
@@ -23,7 +18,7 @@ type Cli struct {
 	*sqlx.DB
 }
 
-// Get 查询单条数据
+// Get 查询单行数据
 func (cli *Cli) Get(dest any, query string, args ...any) error {
 	err := cli.DB.Get(dest, query, args...)
 	if err != nil && !errors.Is(err, dbSql.ErrNoRows) {
@@ -140,13 +135,15 @@ func (cli *Cli) Search(dest any, where string, args ...any) error {
 
 // SearchOneField 查询单个字段
 // dest 基础类型 以及支持直接查询结构体,切片,数组,Map
+// tb 数据库表名
+// field 字段名
 // where 条件语句 如: "WHERE id = 1" 或者 "WHERE id = ?" 参数放在args中
 // args 条件语句使用占位符?时的可变参数
-func (cli *Cli) SearchOneField(dest any, tb string, fieldName string, where string, args ...any) error {
+func (cli *Cli) SearchOneField(dest any, tb string, field string, where string, args ...any) error {
 	if cli.isSearchSlice(dest) {
 		var tmpDest string
 
-		if err := cli.searchOne(&tmpDest, tb, fieldName, where, args); err != nil {
+		if err := cli.searchOne(&tmpDest, tb, field, where, args); err != nil {
 			return err
 		}
 
@@ -156,23 +153,27 @@ func (cli *Cli) SearchOneField(dest any, tb string, fieldName string, where stri
 		return nil
 	}
 
-	return cli.searchOne(dest, tb, fieldName, where, args)
+	return cli.searchOne(dest, tb, field, where, args)
 }
 
 // SearchOneFieldMulti 批量查询单个字段 (支持直接查询结构体,切片,数组,Map)
 // dest 若是结构体指针 则为单行查询; 若是结构体切片指针,则为多行查询
+// tb 数据库表名
+// field 字段名
 // where 条件语句 如: "WHERE id = 1" 或者 "WHERE id = ?" 参数放在args中
 // args 条件语句使用占位符?时的可变参数
-func (cli *Cli) SearchOneFieldMulti(dest any, tb string, fieldName string, where string, args ...any) error {
+func (cli *Cli) SearchOneFieldMulti(dest any, tb string, field string, where string, args ...any) error {
 	if !cli.isSearchSlice(dest) {
 		return errors.New("expected pass slice or array")
 	}
 
-	return cli.searchOne(dest, tb, fieldName, where, args)
+	return cli.searchOne(dest, tb, field, where, args)
 }
 
 // SearchFields 查询多个字段
 // dest Map(单行)或Map切片(多行)
+// tb 数据库表名
+// fields 字段名
 // where 条件语句 如: "WHERE id = 1" 或者 "WHERE id = ?" 参数放在args中
 // args 条件语句使用占位符?时的可变参数
 func (cli *Cli) SearchFields(dest any, tb string, fields []string, where string, args ...any) error {
@@ -216,7 +217,7 @@ func (cli *Cli) Insert(record any) (dbSql.Result, error) {
 
 // region Key 改
 
-// UpdateByStruct 结构体更新(单行)
+// UpdateByStruct 结构体更新
 // record 输入实现 SqlxTabler 接口的结构体 (需要填充所有的结构体字段,不填写默认为零值)
 // fields 需要判断的字段
 func (cli *Cli) UpdateByStruct(record any, fields ...string) (dbSql.Result, error) {
@@ -263,9 +264,9 @@ func (cli *Cli) UpdateByStruct(record any, fields ...string) (dbSql.Result, erro
 	return result, nil
 }
 
-// UpdateByMap 部分更新(单行)
+// UpdateByMap Map更新
 // tb 数据库表名
-// updateMap 输入需要更新的字段的Map
+// record 输入需要更新的字段的Map
 // fields 需要判断的字段
 func (cli *Cli) UpdateByMap(tb string, record any, fields ...string) (dbSql.Result, error) {
 	if len(fields) == 0 {
@@ -334,7 +335,7 @@ func (cli *Cli) Delete(tb string, where string, args ...any) (dbSql.Result, erro
 // region Key 增或改
 
 // Upsert 插入或更新 (不存在则插入,存在则更新) (支持嵌套插入,嵌套结构体,切片,数组,Map 会转换成字符串插入)
-// arg 批量插入时 输入结构体切片; 单条插入时 输入结构体或结构体指针
+// record 批量插入时 输入结构体切片; 单条插入时 输入结构体或结构体指针
 // 批量插入时 Result.LastInsertId 为第一条插入的自增ID或最后条记录插入的Id
 func (cli *Cli) Upsert(record any) (dbSql.Result, error) {
 	records, err := cli.toSqlxTablers(record)

@@ -85,6 +85,37 @@ func (cli *Cli) buildUpdateBatchQuery(tb string, mapSlice []map[string]any, fiel
 	return query, args, nil
 }
 
+func (cli *Cli) updateCaseWhenThen(updateData []map[string]any, fields ...string) (string, []any) {
+
+	var fs = make([]string, 0, len(fields))
+	for _, field := range fields {
+		fs = append(fs, utils.Concat(" `", field, "` = ? "))
+	}
+
+	subCase := utils.Concat("when", strings.Join(fs, "And"), "then ? ")
+
+	args := make([]any, 0, len(updateData[0])*len(updateData))
+
+	var updateClauses []string
+	for field := range updateData[0] {
+		if utils.InSlice(field, fields) {
+			continue
+		}
+		var subCases = make([]string, 0, len(updateData))
+		for _, updateMap := range updateData {
+			subCases = append(subCases, subCase)
+
+			for _, key := range fields {
+				args = append(args, updateMap[key])
+			}
+			args = append(args, updateMap[field])
+		}
+		updateClauses = append(updateClauses, fmt.Sprintf("%s = \n\tCASE \n\t\t%s \n\tEND", field, strings.Join(subCases, "\n\t\t")))
+	}
+
+	return strings.Join(updateClauses, ",\n"), args
+}
+
 // 构建统计计数语句
 func (cli *Cli) buildCountQuery(tb string, where string) string {
 	return utils.Concat("SELECT COUNT(1)", " FROM ", tb, " ", where)
@@ -144,35 +175,4 @@ func (cli *Cli) buildUpsertQuery(tb string, tags []string) string {
 // 构建删除语句
 func (cli *Cli) buildDeleteQuery(tb string, where string) string {
 	return utils.Concat("DELETE FROM", " ", tb, " ", where)
-}
-
-func (cli *Cli) updateCaseWhenThen(updateData []map[string]any, fields ...string) (string, []any) {
-
-	var fs = make([]string, 0, len(fields))
-	for _, field := range fields {
-		fs = append(fs, utils.Concat(" `", field, "` = ? "))
-	}
-
-	subCase := utils.Concat("when", strings.Join(fs, "And"), "then ? ")
-
-	args := make([]any, 0, len(updateData[0])*len(updateData))
-
-	var updateClauses []string
-	for field := range updateData[0] {
-		if utils.InSlice(field, fields) {
-			continue
-		}
-		var subCases = make([]string, 0, len(updateData))
-		for _, updateMap := range updateData {
-			subCases = append(subCases, subCase)
-
-			for _, key := range fields {
-				args = append(args, updateMap[key])
-			}
-			args = append(args, updateMap[field])
-		}
-		updateClauses = append(updateClauses, fmt.Sprintf("%s = \n\tCASE \n\t\t%s \n\tEND", field, strings.Join(subCases, "\n\t\t")))
-	}
-
-	return strings.Join(updateClauses, ",\n"), args
 }
