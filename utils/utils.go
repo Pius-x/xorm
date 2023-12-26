@@ -10,7 +10,7 @@ import (
 	"golang.org/x/exp/constraints"
 )
 
-var ComplexType = []reflect.Kind{reflect.Struct, reflect.Map, reflect.Slice, reflect.Array}
+var ComplexType = []reflect.Kind{reflect.Struct, reflect.Map, reflect.Slice, reflect.Array, reflect.Ptr}
 
 // Concat 字符串拼接
 func Concat(strArr ...string) string {
