@@ -229,6 +229,11 @@ func (cli *Cli) UpdateByStruct(record any, fields ...string) (dbSql.Result, erro
 	if err != nil {
 		return nil, err
 	}
+
+	if len(records) == 0 {
+		return nil, errors.New("Update records empty")
+	}
+
 	tb := records[0].TableName()
 
 	var query string
