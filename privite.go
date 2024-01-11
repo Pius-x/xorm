@@ -214,7 +214,7 @@ func (cli *Cli) searchField(dest any, tb string, fieldName string, where string,
 		return errors.WithMessage(err, fmt.Sprintf("语句执行出错, sql:%s", query))
 	}
 
-	return nil
+	return err
 }
 
 // searchOne 查询单个字段
@@ -235,7 +235,7 @@ func (cli *Cli) searchOne(dest any, tb string, fieldName string, where string, a
 		return errors.WithMessage(err, fmt.Sprintf("语句执行出错, sql:%s", query))
 	}
 
-	return nil
+	return err
 }
 
 // isSearchSlice 是否查询单字段切片

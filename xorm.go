@@ -25,7 +25,7 @@ func (cli *Cli) Get(dest any, query string, args ...any) error {
 		return errors.WithStack(err)
 
 	}
-	return nil
+	return err
 }
 
 // Select 查询多行数据
@@ -34,7 +34,7 @@ func (cli *Cli) Select(dest any, query string, args ...any) error {
 	if err != nil && !errors.Is(err, dbSql.ErrNoRows) {
 		return errors.WithStack(err)
 	}
-	return nil
+	return err
 }
 
 // Query 查询
@@ -130,7 +130,7 @@ func (cli *Cli) Search(dest any, where string, args ...any) error {
 		return errors.WithMessage(err, fmt.Sprintf("语句执行出错, sql:%s", query))
 	}
 
-	return nil
+	return err
 }
 
 // SearchOneField 查询单个字段
@@ -194,7 +194,7 @@ func (cli *Cli) SearchFields(dest any, tb string, fields []string, where string,
 		return errors.WithMessage(err, fmt.Sprintf("语句执行出错, sql:%s", query))
 	}
 
-	return nil
+	return err
 }
 
 // endregion
