@@ -101,6 +101,9 @@ func (cli *Cli) upsert(records []SqlxTabler) (dbSql.Result, error) {
 }
 
 func (cli *Cli) toMapSlice(records []SqlxTabler) ([]map[string]any, []string, error) {
+	if len(records) == 0 {
+		return nil, nil, errors.New("Update records empty")
+	}
 
 	mmp := make([]map[string]any, 0, len(records))
 	for _, record := range records {
