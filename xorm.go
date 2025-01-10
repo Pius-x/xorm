@@ -348,6 +348,10 @@ func (cli *Cli) Upsert(record any) (dbSql.Result, error) {
 		return nil, err
 	}
 
+	if len(records) == 0 {
+		return nil, nil
+	}
+
 	return cli.upsert(records)
 }
 
